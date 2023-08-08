@@ -1,14 +1,16 @@
 package com.soundexpedition.blindguide
 
+import core.*
+import model.*
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Query
 import retrofit2.Response
 
 interface MapApiService {
-    @GET(Url.TMAP_URL)
+    @GET(Setting.TMAP_URL)
     suspend fun getReverseGeoCode(
-        @Header("appKey") appKey: String = Key.TMAP_API,
+        @Header("appKey") appKey: String = Setting.TMAP_API,
 
         @Query("version") version: Int = 1,
         @Query("callback") callback: String? = null,
@@ -16,5 +18,5 @@ interface MapApiService {
         @Query("lon") lon: Double,
         @Query("coordType") coordType: String? = null,
         @Query("addressType") addressType: String? = null
-    ): Response<Data>
+    ): Response<Feature>
 }
