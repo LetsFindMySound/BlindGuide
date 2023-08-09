@@ -1,25 +1,27 @@
 package model
 
+import com.google.gson.annotations.SerializedName
+
 data class Properties(
-    val index: Int,
-    val pointIndex: Int? = null,
-    val lineIndex: Int? = null,
-    val name: String,
-    val guidePointName: String,
-    val description: String,
-    val direction: String,
-    val intersectionName: String,
-    val nearPoiName: String,
-    val nearPoiX: String,
-    val nearPoiY: String,
-    val crossName: String,
-    val turnType: Int,
-    val pointType: String,
-    val roadName: String? = null,
-    val distance: Int? = null,
-    val time: Int? = null,
-    val roadType: Int? = null,
-    val categoryRoadType: Int? = null,
-    val facilityType: Int? = null,
-    val facilityName: String? = null
+    @SerializedName("index") val index: Int,
+    @SerializedName("pointIndex") val pointIndex: Int? = null,
+    @SerializedName("lineIndex") val lineIndex: Int? = null,
+    @SerializedName("name") val name: String,
+    @SerializedName("guidePointName") val guidePointName: String,
+    @SerializedName("description") val description: String,
+    @SerializedName("direction") val direction: String,
+    @SerializedName("intersectionName") val intersectionName: String,
+    @SerializedName("nearPoiName") val nearPoiName: String,
+    @SerializedName("nearPoiX") val nearPoiX: String,
+    @SerializedName("nearPoiY") val nearPoiY: String,
+    @SerializedName("crossName") val crossName: String,
+    @SerializedName("turnType") val turnType: Int,
+    @SerializedName("pointType") val pointType: String,
+    @SerializedName("roadName") val roadName: String? = null,
+    @SerializedName("distance") val distance: Int? = null,
+    @SerializedName("time") val time: Int? = null,
+    @SerializedName("roadType") val roadType: Int? = null,
+    @SerializedName("categoryRoadType") val categoryRoadType: Int? = null,
+    @SerializedName("facilityType") val facilityType: Int? = null,
+    @SerializedName("facilityName") val facilityName: String? = null
 )

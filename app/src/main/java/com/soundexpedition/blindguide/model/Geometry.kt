@@ -1,6 +1,8 @@
 package model
 
+import com.google.gson.annotations.SerializedName
+
 data class Geometry(
-    val type: String,
-    val coordinates: List<List<Double>>
+    @SerializedName("type") val type: String,
+    @SerializedName("coordinates") val coordinates: List<List<Double>>
 )
