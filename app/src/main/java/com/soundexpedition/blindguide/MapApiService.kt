@@ -6,7 +6,7 @@ import retrofit2.http.Query
 import retrofit2.Response
 
 interface MapApiService {
-    @GET(Url.TMAP_URL)
+    @GET(Settings)
     suspend fun getReverseGeoCode(
         @Header("appKey") appKey: String = Key.TMAP_API,
 
