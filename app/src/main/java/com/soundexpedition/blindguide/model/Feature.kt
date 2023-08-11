@@ -1,7 +1,9 @@
 package model
 
+import com.google.gson.annotations.SerializedName
+
 data class Feature(
-    val type: String,
-    val geometry: Geometry,
-    val properties: Properties
+    @SerializedName("type") val type: String,
+    @SerializedName("geometry") val geometry: Geometry,
+    @SerializedName("properties") val properties: Properties
 )
