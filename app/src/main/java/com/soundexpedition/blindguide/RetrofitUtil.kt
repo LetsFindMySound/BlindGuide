@@ -1,6 +1,5 @@
 package com.soundexpedition.blindguide
 
-import com.soundexpedition.blindguide.BuildConfig
 import core.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
