@@ -4,17 +4,22 @@ plugins {
 }
 
 android {
-    namespace = "com.soundexpedition.myapplication"
+    namespace = "com.soundexpedition.blindguide"
     compileSdk = 33
 
     defaultConfig {
-        applicationId = "com.example.blindguide"
+        applicationId = "com.soundexpedition.blindguide"
         minSdk = 24
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    //임의
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
