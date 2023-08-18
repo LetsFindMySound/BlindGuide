@@ -19,7 +19,12 @@ android {
 
     //임의
     buildFeatures {
+        compose = true
         buildConfig = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.4.2"
     }
 
     buildTypes {
