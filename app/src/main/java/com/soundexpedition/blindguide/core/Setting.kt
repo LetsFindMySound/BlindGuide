@@ -1,4 +1,4 @@
-package core
+package com.soundexpedition.blindguide.core
 
 object Setting {
     const val TMAP_URL = "https://apis.openapi.sk.com/"
