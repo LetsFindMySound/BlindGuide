@@ -17,7 +17,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    //임의
     buildFeatures {
         buildConfig = true
     }
@@ -54,4 +53,6 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     //okhttp3 라이브러리 추가
     implementation ("com.squareup.okhttp3:logging-interceptor:4.9.1")
+    //lifecycleScope를 사용
+    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
 }
