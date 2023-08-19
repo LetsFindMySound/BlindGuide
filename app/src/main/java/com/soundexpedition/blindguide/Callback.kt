@@ -1,6 +1,6 @@
 package com.soundexpedition.blindguide
 
-import core.*
+import com.soundexpedition.blindguide.core.*
 import okhttp3.*
 import java.io.IOException
 
