@@ -1,4 +1,4 @@
-package model
+package com.soundexpedition.blindguide.model
 
 import com.google.gson.annotations.SerializedName
 

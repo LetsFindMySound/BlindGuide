@@ -1,6 +1,6 @@
 package com.soundexpedition.blindguide
 
-import core.*
+import com.soundexpedition.blindguide.core.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.OkHttpClient
@@ -18,8 +18,8 @@ object RetrofitUtil {
 
     private fun getRetrofit(): Retrofit {
         if(instance == null) {
-            Retrofit.Builder() //객체를 생성해 줍니다.
-                .baseUrl(Setting.TMAP_URL) //통신할 서버 주소를 설정합니다.
+            instance = Retrofit.Builder() //객체 생성
+                .baseUrl(Setting.TMAP_URL) //통신할 서버 주소 설정
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(buildOkHttpClient())
                 .build()
