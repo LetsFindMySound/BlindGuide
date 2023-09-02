@@ -2,11 +2,9 @@ package com.soundexpedition.blindguide
 
 import com.soundexpedition.blindguide.model.*
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -14,8 +12,8 @@ import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
 
-    // 데이터를 저장할 sortedDataList를 클래스 멤버 변수로 선언
-    private val sortedDataList: MutableList<Pair<String, List<List<Double>>>> = mutableListOf()
+    // 데이터를 저장할 dataList를 클래스 멤버 변수로 선언
+    private val dataList: MutableList<Pair<String, List<List<Double?>?>?>> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,24 +24,33 @@ class MainActivity : AppCompatActivity() {
                 val postResponse = performPostRequest()
 
                 if (postResponse.isSuccessful) {
-                    val responseInfo: ResponseInfo? = postResponse.body()
-                    val features: List<Feature>? = responseInfo?.features
+                    val featureCollection: FeatureCollection? = postResponse.body()
+                    val features: List<Feature>? = featureCollection?.features
 
                     features?.forEach { feature ->
                         val geometry: Geometry = feature.geometry
                         val properties: Properties = feature.properties
-                        val coordinates: List<List<Double>> = geometry.coordinates
+                        val coordinates: List<List<Double>?>? = geometry.coordinates
                         val propertyName: String = properties.name
 
-                        Log.d("MainActivity", "Geometry coordinates: $coordinates")
-                        Log.d("MainActivity", "Property Name: $propertyName")
+                        val swappedCoordinates = coordinates?.map { coordinateList ->
+                            coordinateList?.let {
+                                val longitude = it.getOrNull(0) ?: 0.0 // 첫 번째 좌표 (경도)
+                                val latitude = it.getOrNull(1) ?: 0.0 // 두 번째 좌표 (위도)
+                                listOf(latitude, longitude)
+                            }
+                        } ?: emptyList()
 
-                        // 데이터를 정렬하여 리스트에 저장
-                        val sortedDataItem = Pair(propertyName, coordinates)
-                        sortedDataList.add(sortedDataItem)
+                        // coodinates의 위도와 경도 순서를 바꾸어 데이터를 리스트에 저장
+                        val dataItem: Pair<String, List<List<Double>?>?> =
+                            Pair(propertyName, swappedCoordinates)
+                        dataList.add(dataItem)
                     }
-                    // 리스트를 파일에 저장
-                    saveSortedDataToFile(sortedDataList)
+
+                    Log.d("MainActivity", "Data List:")
+                    dataList.forEachIndexed { index, (name, coords) ->
+                        Log.d("MainActivity", "Item $index - Name: $name, Coordinates: $coords")
+                    }
 
                 } else {
                     // 실패 처리
@@ -60,7 +67,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun performPostRequest(): Response<ResponseInfo> {
+    private suspend fun performPostRequest(): Response<FeatureCollection> {
         val mapApiService = RetrofitUtil.mapApiService
 
         // 임시
@@ -84,19 +91,5 @@ class MainActivity : AppCompatActivity() {
             sort = "index"                                          // 지리정보 개체 정렬 순서, default=index
         )
         return mapApiService.postResponseInfo(requestPayload = requestPayload)
-    }
-
-    private fun saveSortedDataToFile(sortedDataList: MutableList<Pair<String, List<List<Double>>>>) {
-        val file = File(
-            applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
-            "sorted_data.txt"
-        )
-        file.writeText(
-            sortedDataList.joinToString("\n") { (name, coordinates) ->
-                "$name: ${coordinates.joinToString(", ") { it.toString() }}"
-            }
-        )
-
-        Log.d("MainActivity", "Sorted data saved to ${file.absolutePath}")
     }
 }
