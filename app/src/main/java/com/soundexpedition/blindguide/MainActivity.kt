@@ -13,7 +13,7 @@ import retrofit2.Response
 class MainActivity : AppCompatActivity() {
 
     // 데이터를 저장할 dataList를 클래스 멤버 변수로 선언
-    private val dataList: MutableList<Pair<String, List<List<Double?>?>?>> = mutableListOf()
+    private val dataList: MutableList<Pair<String, List<Pair<Double, Double>>>> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,26 +30,38 @@ class MainActivity : AppCompatActivity() {
                     features?.forEach { feature ->
                         val geometry: Geometry = feature.geometry
                         val properties: Properties = feature.properties
-                        val coordinates: List<List<Double>?>? = geometry.coordinates
-                        val propertyName: String = properties.name
+                        val coordinates: Any? = geometry.coordinates
+                        val propertyName: String? = properties.name // propertyName을 nullable로 변경
 
-                        val swappedCoordinates = coordinates?.map { coordinateList ->
-                            coordinateList?.let {
-                                val longitude = it.getOrNull(0) ?: 0.0 // 첫 번째 좌표 (경도)
-                                val latitude = it.getOrNull(1) ?: 0.0 // 두 번째 좌표 (위도)
-                                listOf(latitude, longitude)
-                            }
-                        } ?: emptyList()
+                        if (propertyName != null) {
 
-                        // coodinates의 위도와 경도 순서를 바꾸어 데이터를 리스트에 저장
-                        val dataItem: Pair<String, List<List<Double>?>?> =
-                            Pair(propertyName, swappedCoordinates)
-                        dataList.add(dataItem)
+                            // 좌표 데이터를 파싱하여 좌표 리스트로 변환
+                            val coordinatePairs: List<Pair<Double, Double>> =
+                                parseCoordinates(coordinates)
+
+                            // coodinates의 위도와 경도 순서를 바꾸어 데이터를 리스트에 저장
+//                        val swappedCoordinates = coordinates?.map { coordinateList ->
+//                            coordinateList?.let {
+//                                val longitude = it.getOrNull(0) ?: 0.0 // 첫 번째 좌표 (경도)
+//                                val latitude = it.getOrNull(1) ?: 0.0 // 두 번째 좌표 (위도)
+//                                listOf(latitude, longitude)
+//                            }
+//                        } ?: emptyList()
+
+                            // 데이터를 리스트에 저장
+                            val dataItem: Pair<String, List<Pair<Double, Double>>> =
+                                Pair(propertyName, coordinatePairs)
+                            dataList.add(dataItem)
+                        } else {
+                            // propertyName이 null인 경우 처리
+                            Log.e("MainActivity", "Null propertyName encountered.")
+                        }
                     }
 
+                    // 데이터 리스트 출력
                     Log.d("MainActivity", "Data List:")
-                    dataList.forEachIndexed { index, (name, coords) ->
-                        Log.d("MainActivity", "Item $index - Name: $name, Coordinates: $coords")
+                    dataList.forEachIndexed { index, (propertyName, coordinatePairs) ->
+                        Log.d("MainActivity", "Item $index - Name: $propertyName, Coordinates: $coordinatePairs")
                     }
 
                 } else {
@@ -91,5 +103,46 @@ class MainActivity : AppCompatActivity() {
             sort = "index"                                          // 지리정보 개체 정렬 순서, default=index
         )
         return mapApiService.postResponseInfo(requestPayload = requestPayload)
+    }
+
+    // coordinates를 문자열에서 리스트로 처리
+    private fun parseCoordinates(coordinates: Any?): List<Pair<Double, Double>> {
+        val validCoordinates = mutableListOf<Pair<Double, Double>>()
+
+        if (coordinates is List<*>) {
+            for (coordinate in coordinates) {
+                if (coordinate is String) { //string이 아니다ㅜㅜ 실행 안됨
+                    // 문자열에서 공백과 쉼표를 제거
+                    val cleanedCoordinate = coordinate.replace("[\\s,]".toRegex(), "")
+                    val coordinateParts = cleanedCoordinate.split(";", ",") // 여기서 세미콜론 또는 쉼표로 분리
+
+                    if (coordinateParts.size >= 2) {
+                        val longitudeStr = coordinateParts[0]
+                        val latitudeStr = coordinateParts[1]
+                        Log.d("MainActivity", "Longitude: $longitudeStr, Latitude: $latitudeStr")
+
+                        if (!longitudeStr.isNullOrEmpty() && !latitudeStr.isNullOrEmpty()) {
+                            try {
+                                val longitude = longitudeStr.toDouble()
+                                val latitude = latitudeStr.toDouble()
+
+                                validCoordinates.add(Pair(longitude, latitude))
+                            } catch (e: NumberFormatException) {
+                                // 파싱할 수 없는 문자열이 포함된 경우 무시
+                                Log.e("MainActivity", "Invalid coordinate: $longitudeStr, $latitudeStr")
+                            }
+                        } else {
+                            // 빈 문자열이 포함된 경우 무시
+                            Log.w("MainActivity", "Empty coordinate: $longitudeStr, $latitudeStr")
+                        }
+                    } else {
+                        // 형식이 맞지 않는 경우 무시
+                        Log.e("MainActivity", "Invalid coordinate format: $coordinate")
+                    }
+                }
+            }
+        }
+
+        return validCoordinates
     }
 }
