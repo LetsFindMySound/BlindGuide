@@ -2,20 +2,15 @@ package com.soundexpedition.blindguide
 
 import com.soundexpedition.blindguide.model.*
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
-
-    // 데이터를 저장할 sortedDataList를 클래스 멤버 변수로 선언
-    private val sortedDataList: MutableList<Pair<String, List<List<Double>>>> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,25 +21,29 @@ class MainActivity : AppCompatActivity() {
                 val postResponse = performPostRequest()
 
                 if (postResponse.isSuccessful) {
-                    val responseInfo: ResponseInfo? = postResponse.body()
-                    val features: List<Feature>? = responseInfo?.features
+                    val featureCollection: FeatureCollection? = postResponse.body()
+                    val features: List<Feature>? = featureCollection?.features
 
-                    features?.forEach { feature ->
+                    features?.forEachIndexed { index, feature ->
                         val geometry: Geometry = feature.geometry
                         val properties: Properties = feature.properties
-                        val coordinates: List<List<Double>> = geometry.coordinates
-                        val propertyName: String = properties.name
 
-                        Log.d("MainActivity", "Geometry coordinates: $coordinates")
-                        Log.d("MainActivity", "Property Name: $propertyName")
+                        val type: String = geometry.type
+                        val coordinates: Any? = geometry.coordinates
+                        val description: String = properties.description
 
-                        // 데이터를 정렬하여 리스트에 저장
-                        val sortedDataItem = Pair(propertyName, coordinates)
-                        sortedDataList.add(sortedDataItem)
+                        // 좌표 데이터를 파싱하여 좌표 리스트로 변환
+                        val coordinateList: List<List<Double>> =
+                            parseCoordinates(coordinates)
+
+                        // 데이터 리스트 출력
+                        Log.d(
+                            "MainActivity", "Data List $index\n" +
+                                    "Type: $type,\n" +
+                                    "Description: $description,\n" +
+                                    "Coordinates: $coordinateList\n"
+                        )
                     }
-                    // 리스트를 파일에 저장
-                    saveSortedDataToFile(sortedDataList)
-
                 } else {
                     // 실패 처리
                     val errorMessage =
@@ -60,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun performPostRequest(): Response<ResponseInfo> {
+    private suspend fun performPostRequest(): Response<FeatureCollection> {
         val mapApiService = RetrofitUtil.mapApiService
 
         // 임시
@@ -86,17 +85,37 @@ class MainActivity : AppCompatActivity() {
         return mapApiService.postResponseInfo(requestPayload = requestPayload)
     }
 
-    private fun saveSortedDataToFile(sortedDataList: MutableList<Pair<String, List<List<Double>>>>) {
-        val file = File(
-            applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
-            "sorted_data.txt"
-        )
-        file.writeText(
-            sortedDataList.joinToString("\n") { (name, coordinates) ->
-                "$name: ${coordinates.joinToString(", ") { it.toString() }}"
-            }
-        )
+    // coordinates를 문자열에서 리스트로 처리
+    private fun parseCoordinates(coordinates: Any?): List<List<Double>> {
+        val validCoordinates = mutableListOf<List<Double>>()
 
-        Log.d("MainActivity", "Sorted data saved to ${file.absolutePath}")
+        when (coordinates) {
+            is List<*> -> {
+                if (coordinates.isNotEmpty() && coordinates[0] is List<*>) {
+                    // coordinates가 이중 리스트인 경우 (여러 개의 좌표)
+                    for (coordinate in coordinates) {
+                        val latitude = (coordinate as List<*>)[1] as? Double
+                        val longitude = coordinate[0] as? Double
+
+                        if (latitude != null && longitude != null) {
+                            validCoordinates.add(listOf(latitude, longitude))
+                        } else {
+                            Log.e("MainActivity", "Invalid coordinate format: $coordinate")
+                        }
+                    }
+                } else {
+                    // coordinates가 단일 리스트인 경우 (단일 좌표)
+                    val latitude = coordinates[1] as? Double
+                    val longitude = coordinates[0] as? Double
+
+                    if (latitude != null && longitude != null) {
+                        validCoordinates.add(listOf(latitude, longitude))
+                    } else {
+                        Log.e("MainActivity", "Invalid coordinate format: $coordinates")
+                    }
+                }
+            }
+        }
+        return validCoordinates
     }
 }

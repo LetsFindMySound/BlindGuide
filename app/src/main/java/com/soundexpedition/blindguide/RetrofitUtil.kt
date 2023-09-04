@@ -7,14 +7,13 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
 
-//Retrofit을 초기화하고 API 서비스를 생성한다.
 object RetrofitUtil {
 
     private var instance: Retrofit? = null
 
     val mapApiService: MapApiService by lazy {
         getRetrofit().create(MapApiService::class.java)
-    }
+    } // Retrofit 초기화
 
     private fun getRetrofit(): Retrofit {
         if(instance == null) {

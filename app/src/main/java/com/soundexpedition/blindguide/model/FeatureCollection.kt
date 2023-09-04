@@ -1,6 +1,6 @@
 package com.soundexpedition.blindguide.model
 
-data class Geometry(
+data class FeatureCollection(
     val type: String,
-    val coordinates: Any?
+    val features: List<Feature>
 )
