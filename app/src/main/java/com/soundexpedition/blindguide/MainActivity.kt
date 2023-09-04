@@ -12,9 +12,6 @@ import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
 
-    // 데이터를 저장할 dataList를 클래스 멤버 변수로 선언
-    private val dataList: MutableList<Pair<String, List<List<Double>>>> = mutableListOf()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -27,43 +24,26 @@ class MainActivity : AppCompatActivity() {
                     val featureCollection: FeatureCollection? = postResponse.body()
                     val features: List<Feature>? = featureCollection?.features
 
-                    features?.forEach { feature ->
+                    features?.forEachIndexed { index, feature ->
                         val geometry: Geometry = feature.geometry
                         val properties: Properties = feature.properties
+
+                        val type: String = geometry.type
                         val coordinates: Any? = geometry.coordinates
-                        val propertyName: String? = properties.name
+                        val description: String = properties.description
 
-                        if (propertyName != null) {
+                        // 좌표 데이터를 파싱하여 좌표 리스트로 변환
+                        val coordinateList: List<List<Double>> =
+                            parseCoordinates(coordinates)
 
-                            // 좌표 데이터를 파싱하여 좌표 리스트로 변환
-                            val coordinatePairs: List<List<Double>> =
-                                parseCoordinates(coordinates)
-
-                            // coodinates의 위도와 경도 순서를 바꾸어 데이터를 리스트에 저장
-//                        val swappedCoordinates = coordinates?.map { coordinateList ->
-//                            coordinateList?.let {
-//                                val longitude = it.getOrNull(0) ?: 0.0 // 첫 번째 좌표 (경도)
-//                                val latitude = it.getOrNull(1) ?: 0.0 // 두 번째 좌표 (위도)
-//                                listOf(latitude, longitude)
-//                            }
-//                        } ?: emptyList()
-
-                            // 데이터를 리스트에 저장
-                            val dataItem: Pair<String, List<List<Double>>> =
-                                Pair(propertyName, coordinatePairs)
-                            dataList.add(dataItem)
-                        } else {
-                            // propertyName이 null인 경우 처리
-                            Log.e("MainActivity", "Null propertyName encountered.")
-                        }
+                        // 데이터 리스트 출력
+                        Log.d(
+                            "MainActivity", "Data List $index\n" +
+                                    "Type: $type,\n" +
+                                    "Description: $description,\n" +
+                                    "Coordinates: $coordinateList\n"
+                        )
                     }
-
-                    // 데이터 리스트 출력
-                    Log.d("MainActivity", "Data List:")
-                    dataList.forEachIndexed { index, (propertyName, coordinateList) ->
-                        Log.d("MainActivity", "Item $index - Name: $propertyName, Coordinates: $coordinateList")
-                    }
-
                 } else {
                     // 실패 처리
                     val errorMessage =
@@ -109,26 +89,33 @@ class MainActivity : AppCompatActivity() {
     private fun parseCoordinates(coordinates: Any?): List<List<Double>> {
         val validCoordinates = mutableListOf<List<Double>>()
 
-        if (coordinates is List<*>) {
-            for (coordinate in coordinates) {
-                if (coordinate is List<*>) {
-                    val coordinateParts = coordinate.mapNotNull {
-                        if (it is Double) it else null
+        when (coordinates) {
+            is List<*> -> {
+                if (coordinates.isNotEmpty() && coordinates[0] is List<*>) {
+                    // coordinates가 이중 리스트인 경우 (여러 개의 좌표)
+                    for (coordinate in coordinates) {
+                        val latitude = (coordinate as List<*>)[1] as? Double
+                        val longitude = coordinate[0] as? Double
+
+                        if (latitude != null && longitude != null) {
+                            validCoordinates.add(listOf(latitude, longitude))
+                        } else {
+                            Log.e("MainActivity", "Invalid coordinate format: $coordinate")
+                        }
                     }
+                } else {
+                    // coordinates가 단일 리스트인 경우 (단일 좌표)
+                    val latitude = coordinates[1] as? Double
+                    val longitude = coordinates[0] as? Double
 
-                    if (coordinateParts.size >= 2) {
-                        val latitude = coordinateParts[0] // 위도
-                        val longitude = coordinateParts[1] // 경도
-
-                        validCoordinates.add(listOf(longitude, latitude))
+                    if (latitude != null && longitude != null) {
+                        validCoordinates.add(listOf(latitude, longitude))
                     } else {
-                        // 형식이 맞지 않는 경우 무시
-                        Log.e("MainActivity", "Invalid coordinate format: $coordinate")
+                        Log.e("MainActivity", "Invalid coordinate format: $coordinates")
                     }
                 }
             }
         }
-
         return validCoordinates
     }
 }
