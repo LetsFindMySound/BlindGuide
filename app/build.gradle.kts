@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-android")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -56,3 +58,4 @@ dependencies {
     //lifecycleScope를 사용
     implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
 }
+
