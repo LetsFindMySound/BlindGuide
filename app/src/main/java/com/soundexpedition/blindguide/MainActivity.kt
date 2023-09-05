@@ -3,6 +3,7 @@ package com.soundexpedition.blindguide
 import com.soundexpedition.blindguide.model.*
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import java.io.IOException
@@ -15,6 +16,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val responseTextView : TextView = findViewById(R.id.myTextView)
 
         lifecycleScope.launch(Dispatchers.IO) { //IO 스레드에서 코루틴 실행
             try {
@@ -44,6 +46,7 @@ class MainActivity : AppCompatActivity() {
                                     "Coordinates: $coordinateList\n"
                         )
                     }
+                    responseTextView.text = features.toString()
                 } else {
                     // 실패 처리
                     val errorMessage =
@@ -57,6 +60,7 @@ class MainActivity : AppCompatActivity() {
                 Log.e("MainActivity", errorMessage)
             }
         }
+
     }
 
     private suspend fun performPostRequest(): Response<FeatureCollection> {
