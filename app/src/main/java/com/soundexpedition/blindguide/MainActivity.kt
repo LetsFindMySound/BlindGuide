@@ -1,5 +1,6 @@
 package com.soundexpedition.blindguide
 
+import android.content.Intent
 import com.soundexpedition.blindguide.model.*
 import android.os.Bundle
 import android.util.Log
@@ -16,7 +17,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val responseTextView : TextView = findViewById(R.id.myTextView)
+
+        val intent = Intent(this, ResponseActivity::class.java)
 
         lifecycleScope.launch(Dispatchers.IO) { //IO 스레드에서 코루틴 실행
             try {
@@ -46,7 +48,9 @@ class MainActivity : AppCompatActivity() {
                                     "Coordinates: $coordinateList\n"
                         )
                     }
-                    responseTextView.text = features.toString()
+                    intent.putExtra("response", featureCollection)
+                    startActivity(intent)
+
                 } else {
                     // 실패 처리
                     val errorMessage =
