@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CoroutineExceptionHandler
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,36 +19,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val intent = Intent(this, ResponseActivity::class.java)
+        val coroutineExceptionHandler = CoroutineExceptionHandler{_, throwable ->
+            throwable.printStackTrace()
+        }
 
-        lifecycleScope.launch(Dispatchers.IO) { //IO 스레드에서 코루틴 실행
+        lifecycleScope.launch(Dispatchers.IO + coroutineExceptionHandler) { //IO 스레드에서 코루틴 실행
             try {
                 val postResponse = performPostRequest()
 
+
                 if (postResponse.isSuccessful) {
                     val featureCollection: FeatureCollection? = postResponse.body()
-                    val features: List<Feature>? = featureCollection?.features
 
-                    features?.forEachIndexed { index, feature ->
-                        val geometry: Geometry = feature.geometry
-                        val properties: Properties = feature.properties
+                    val intent = Intent(this@MainActivity, ResponseActivity::class.java)
 
-                        val type: String = geometry.type
-                        val coordinates: Any? = geometry.coordinates
-                        val description: String = properties.description
-
-                        // 좌표 데이터를 파싱하여 좌표 리스트로 변환
-                        val coordinateList: List<List<Double>> =
-                            parseCoordinates(coordinates)
-
-                        // 데이터 리스트 출력
-                        Log.d(
-                            "MainActivity", "Data List $index\n" +
-                                    "Type: $type,\n" +
-                                    "Description: $description,\n" +
-                                    "Coordinates: $coordinateList\n"
-                        )
-                    }
                     intent.putExtra("response", featureCollection)
                     startActivity(intent)
 
@@ -93,37 +78,5 @@ class MainActivity : AppCompatActivity() {
         return mapApiService.postResponseInfo(requestPayload = requestPayload)
     }
 
-    // coordinates를 문자열에서 리스트로 처리
-    private fun parseCoordinates(coordinates: Any?): List<List<Double>> {
-        val validCoordinates = mutableListOf<List<Double>>()
 
-        when (coordinates) {
-            is List<*> -> {
-                if (coordinates.isNotEmpty() && coordinates[0] is List<*>) {
-                    // coordinates가 이중 리스트인 경우 (여러 개의 좌표)
-                    for (coordinate in coordinates) {
-                        val latitude = (coordinate as List<*>)[1] as? Double
-                        val longitude = coordinate[0] as? Double
-
-                        if (latitude != null && longitude != null) {
-                            validCoordinates.add(listOf(latitude, longitude))
-                        } else {
-                            Log.e("MainActivity", "Invalid coordinate format: $coordinate")
-                        }
-                    }
-                } else {
-                    // coordinates가 단일 리스트인 경우 (단일 좌표)
-                    val latitude = coordinates[1] as? Double
-                    val longitude = coordinates[0] as? Double
-
-                    if (latitude != null && longitude != null) {
-                        validCoordinates.add(listOf(latitude, longitude))
-                    } else {
-                        Log.e("MainActivity", "Invalid coordinate format: $coordinates")
-                    }
-                }
-            }
-        }
-        return validCoordinates
-    }
 }

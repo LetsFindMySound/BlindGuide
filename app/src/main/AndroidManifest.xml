@@ -15,6 +15,8 @@
         android:theme="@style/Theme.BlindGuide"
         android:requestLegacyExternalStorage="true"
         tools:targetApi="31">
+        <activity android:name=".ResponseActivity"
+            android:exported="false" />
         <activity
             android:name="com.soundexpedition.blindguide.MainActivity"
             android:exported="true">
