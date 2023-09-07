@@ -1,5 +1,9 @@
 package com.soundexpedition.blindguide.model
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
+@Parcelize
 data class Properties(
     val totalDistance: Int? = null,
     val totalTime: Int? = null,
@@ -21,4 +25,4 @@ data class Properties(
     val facilityName: String? = null,
     val turnType: Int? = null,
     val pointType: String? = null,
-)
+) : Parcelable
