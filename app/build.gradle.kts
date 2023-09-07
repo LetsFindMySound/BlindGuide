@@ -39,6 +39,7 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
 }
 
 dependencies {
@@ -57,5 +58,5 @@ dependencies {
     implementation ("com.squareup.okhttp3:logging-interceptor:4.9.1")
     //lifecycleScope를 사용
     implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
-}
 
+}
